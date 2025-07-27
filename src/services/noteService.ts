@@ -1,13 +1,6 @@
 import axios from "axios";
 import type { Note } from "../types/note";
 
-// FetchNotesResponse
-
-
-// GET https://notehub-public.goit.study/api/notes?page=1&perPage=12
-// GET https://notehub-public.goit.study/api/notes?search=mysearchtext
-
-
 export interface NoteListParams  {
     page: number;
     perPage: number;
@@ -20,7 +13,7 @@ export interface NoteListResponse {
 
 const API_URL = 'https://notehub-public.goit.study/api/notes';
 
-const perPage = 5;
+const perPage = 10;
 
 export const fetchNotes = async (search: string, page: number): Promise<NoteListResponse> => {
     let params: NoteListParams = {
@@ -46,11 +39,47 @@ export const fetchNotes = async (search: string, page: number): Promise<NoteList
 
         return response.data;
     } catch (error) {
-        console.error('Error fetching data from TMDb:', error);
+        console.error('Error fetching data:', error);
         throw error;
     }
 };
 
-// createNote
+export const createNote = async (
+    title: string,
+    content: string,
+    tag: string
+): Promise<Note> => {
+    try {
+        const response = await axios.post<Note>(API_URL, {
+            title,
+            content,
+            tag
+        }, {
+            headers: {
+                Authorization: `Bearer ${import.meta.env.VITE_NOTEHUB_TOKEN}`,
+                accept: 'application/json'
+            }
+        });
 
-// deleteNote
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+    }
+};
+
+export const deleteNote = async (id: number): Promise<Note> => {
+    try {
+        const response = await axios.delete<Note>(`${API_URL}/${id}`, {
+            headers: {
+                Authorization: `Bearer ${import.meta.env.VITE_NOTEHUB_TOKEN}`,
+                accept: 'application/json'
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+    }
+};

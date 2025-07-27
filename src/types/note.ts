@@ -6,5 +6,3 @@ export interface Note {
     title: string;
     updatedAt: Date;
 }
-
-// NoteTag

@@ -1,22 +1,78 @@
 
-import { fetchNotes } from '../../services/noteService';
+import { useEffect, useState } from 'react';
+import { createNote, deleteNote, fetchNotes, type NoteListResponse } from '../../services/noteService';
 import NoteList from '../NoteList/NoteList'
 import Pagination from '../Pagination/Pagination'
 import SearchBox from '../SearchBox/SearchBox'
 import css from './App.module.css'
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
 
-  fetchNotes('', 1).then(data => console.log(data));
+  const [query, setQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [wasSearched, setWasSearched] = useState<boolean>(false);
+
+  const {
+    data = {
+      notes: [],
+      totalPages: 0,
+    } as NoteListResponse,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['notes', query, currentPage],
+    queryFn: () => fetchNotes(query, currentPage),
+    placeholderData: (prevData) => prevData,
+  });
+
+  const handleSearch = (newQuery: string) => {
+    setQuery(newQuery);
+    setCurrentPage(1);
+    setWasSearched(true);
+  };
+
+  const queryClient = useQueryClient();
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteNote(id);
+      toast.success('Note deleted!');
+      queryClient.invalidateQueries({
+        queryKey: ['notes'],
+      });
+    } catch (error) {
+      toast.error('Failed to delete note' + error);
+    }
+  };
+
+
+  useEffect(() => {
+    if (wasSearched && !isLoading && data.notes?.length === 0 && !isError) {
+      toast.error('No notes found for your request.');
+    }
+  }, [data, isLoading, isError, wasSearched]);
+
+  // createNote('Hello World', 'My name is TypeScript', 'Work');
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        <SearchBox />
-        <Pagination />
+        <SearchBox onSubmit={handleSearch} />
+        {
+          data.totalPages > 1 &&
+          <Pagination
+            totalPages={data.totalPages}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage} />
+        }
         <button className={css.button}>Create note +</button>
       </header>
-      <NoteList />
+      
+      <NoteList notes={data.notes} onDelete={handleDelete} />
+
+      <Toaster />
     </div>
   )
 }
