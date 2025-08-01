@@ -1,7 +1,7 @@
-import { Formik, Form, Field, ErrorMessage, type FormikHelpers } from 'formik';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import css from './NoteForm.module.css';
-import { useState } from 'react';
+import { type FormikHelpers } from 'formik';
 
 interface FormValues {
   title: string;
@@ -28,18 +28,18 @@ interface NoteFormProps {
 }
 
 export default function NoteForm({ onCreate, onCancel }: NoteFormProps) {
-  const [disabledCreateButton, setDisabledCreateButton] = useState<boolean>(true);
-
   const initialValues: FormValues = {
     title: '',
     content: '',
     tag: 'Todo',
   };
 
-  const handleSubmit = (values: FormValues, { resetForm }: FormikHelpers<FormValues>) => {
+  const handleSubmit = (
+    values: FormValues,
+    { resetForm }: FormikHelpers<FormValues>
+  ) => {
     onCreate(values.title, values.content, values.tag);
     resetForm();
-    setDisabledCreateButton(true);
   };
 
   return (
@@ -48,60 +48,56 @@ export default function NoteForm({ onCreate, onCancel }: NoteFormProps) {
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
-      {({ isValid, dirty }) => {
-        const shouldEnableButton = isValid && dirty;
+      {({ isValid, dirty }) => (
+        <Form className={css.form}>
+          <div className={css.formGroup}>
+            <label htmlFor="title">Title</label>
+            <Field id="title" name="title" type="text" className={css.input} />
+            <ErrorMessage name="title" component="span" className={css.error} />
+          </div>
 
-        if (shouldEnableButton !== !disabledCreateButton) {
-          setDisabledCreateButton(!shouldEnableButton);
-        }
+          <div className={css.formGroup}>
+            <label htmlFor="content">Content</label>
+            <Field
+              as="textarea"
+              id="content"
+              name="content"
+              rows={8}
+              className={css.textarea}
+            />
+            <ErrorMessage name="content" component="span" className={css.error} />
+          </div>
 
-        return (
-          <Form className={css.form}>
-            <div className={css.formGroup}>
-              <label htmlFor="title">Title</label>
-              <Field id="title" name="title" type="text" className={css.input} />
-              <ErrorMessage name="title" component="span" className={css.error} />
-            </div>
+          <div className={css.formGroup}>
+            <label htmlFor="tag">Tag</label>
+            <Field as="select" id="tag" name="tag" className={css.select}>
+              <option value="Todo">Todo</option>
+              <option value="Work">Work</option>
+              <option value="Personal">Personal</option>
+              <option value="Meeting">Meeting</option>
+              <option value="Shopping">Shopping</option>
+            </Field>
+            <ErrorMessage name="tag" component="span" className={css.error} />
+          </div>
 
-            <div className={css.formGroup}>
-              <label htmlFor="content">Content</label>
-              <Field
-                as="textarea"
-                id="content"
-                name="content"
-                rows={8}
-                className={css.textarea}
-              />
-              <ErrorMessage name="content" component="span" className={css.error} />
-            </div>
-
-            <div className={css.formGroup}>
-              <label htmlFor="tag">Tag</label>
-              <Field as="select" id="tag" name="tag" className={css.select}>
-                <option value="Todo">Todo</option>
-                <option value="Work">Work</option>
-                <option value="Personal">Personal</option>
-                <option value="Meeting">Meeting</option>
-                <option value="Shopping">Shopping</option>
-              </Field>
-              <ErrorMessage name="tag" component="span" className={css.error} />
-            </div>
-
-            <div className={css.actions}>
-              <button type="reset" className={css.cancelButton} onClick={onCancel}>
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={disabledCreateButton}
-                className={css.submitButton}
-              >
-                Create note
-              </button>
-            </div>
-          </Form>
-        );
-      }}
+          <div className={css.actions}>
+            <button
+              type="reset"
+              className={css.cancelButton}
+              onClick={onCancel}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!(isValid && dirty)}
+              className={css.submitButton}
+            >
+              Create note
+            </button>
+          </div>
+        </Form>
+      )}
     </Formik>
   );
 }
