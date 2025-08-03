@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import css from './SearchBox.module.css';
 
-interface SearchBoxProps {
-  onSubmit: (value: string) => void;
-}
-
-function SearchBox({ onSubmit }: SearchBoxProps) {
+function SearchBox() {
   const [inputValue, setInputValue] = useState('');
+  const queryClient = useQueryClient();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
-    onSubmit(value); 
   };
+
+  useEffect(() => {
+    // Скидає кеш і запускає новий запит з новим `search` параметром
+    queryClient.invalidateQueries({ queryKey: ['notes'] });
+  }, [inputValue, queryClient]);
 
   return (
     <input
@@ -21,7 +23,7 @@ function SearchBox({ onSubmit }: SearchBoxProps) {
       placeholder="Search notes"
       value={inputValue}
       onChange={handleChange}
-    />  
+    />
   );
 }
 

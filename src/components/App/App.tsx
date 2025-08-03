@@ -1,27 +1,23 @@
-
 import { useEffect, useState } from 'react';
-import { createNote, deleteNote, fetchNotes, type NoteListResponse } from '../../services/noteService';
-import NoteList from '../NoteList/NoteList'
-import Pagination from '../Pagination/Pagination'
-import SearchBox from '../SearchBox/SearchBox'
-import css from './App.module.css'
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { createNote, fetchNotes, type NoteListResponse } from '../../services/noteService';
+import NoteList from '../NoteList/NoteList';
+import Pagination from '../Pagination/Pagination';
+import SearchBox from '../SearchBox/SearchBox';
+import css from './App.module.css';
+import { useQuery } from '@tanstack/react-query';
 import toast, { Toaster } from 'react-hot-toast';
 import Modal from '../Modal/Modal';
 import NoteForm from '../NoteForm/NoteForm';
 
 function App() {
-
   const [query, setQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [wasSearched, setWasSearched] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
 
+  // Пошукове значення більше не приходить ззовні, тому запит має бути адаптований
   const {
-    data = {
-      notes: [],
-      totalPages: 0,
-    } as NoteListResponse,
+    data = { notes: [], totalPages: 0 } as NoteListResponse,
     isLoading,
     isError,
   } = useQuery({
@@ -29,26 +25,6 @@ function App() {
     queryFn: () => fetchNotes(query, currentPage),
     placeholderData: (prevData) => prevData,
   });
-
-  const handleSearch = (newQuery: string) => {
-    setQuery(newQuery);
-    setCurrentPage(1);
-    setWasSearched(true);
-  };
-
-  const queryClient = useQueryClient();
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteNote(id);
-      toast.success('Note deleted!');
-      queryClient.invalidateQueries({
-        queryKey: ['notes'],
-      });
-    } catch (error) {
-      toast.error('Failed to delete note' + error);
-    }
-  };
 
   const handleCreate = async (
     title: string,
@@ -58,14 +34,10 @@ function App() {
     try {
       await createNote(title, content, tag);
       toast.success('Note created!');
-      queryClient.invalidateQueries({
-        queryKey: ['notes'],
-      });
     } catch (error) {
-      toast.error('Failed to create note' + error);
+      toast.error('Failed to create note: ' + error);
     }
   };
-
 
   useEffect(() => {
     if (wasSearched && !isLoading && data.notes?.length === 0 && !isError) {
@@ -76,26 +48,28 @@ function App() {
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        <SearchBox onSubmit={handleSearch} />
+        <SearchBox />
         {
           data.totalPages > 1 &&
           <Pagination
             totalPages={data.totalPages}
             currentPage={currentPage}
-            setCurrentPage={setCurrentPage} />
+            setCurrentPage={setCurrentPage}
+          />
         }
         <button className={css.button} onClick={() => setShowModal(true)}>Create note +</button>
       </header>
-      
-      <NoteList notes={data.notes} onDelete={handleDelete} />
 
+      <NoteList notes={data.notes} />
       <Toaster />
-      
-      {showModal && <Modal onClose={() => setShowModal(false)}>
-        <NoteForm onCreate={handleCreate} onCancel={() => setShowModal(false)} />
-      </Modal>}
+
+      {showModal && (
+        <Modal onClose={() => setShowModal(false)}>
+          <NoteForm onCreate={handleCreate} onCancel={() => setShowModal(false)} />
+        </Modal>
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

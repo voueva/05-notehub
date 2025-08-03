@@ -1,11 +1,12 @@
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import css from './NoteForm.module.css';
+import { useQueryClient } from '@tanstack/react-query';
 import { type FormikHelpers } from 'formik';
 
 interface FormValues {
   title: string;
-  content: string;
+  content?: string;
   tag: string;
 }
 
@@ -14,31 +15,30 @@ const validationSchema = Yup.object().shape({
     .min(3, 'Title must be at least 3 characters')
     .max(50, 'Title must be at most 50 characters')
     .required('Title is required'),
-  content: Yup.string()
-    .max(500, 'Content must be at most 500 characters')
-    .required('Content is required'),
+  content: Yup.string().max(500, 'Content must be at most 500 characters'),
   tag: Yup.string()
     .oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'], 'Invalid tag')
     .required('Tag is required'),
 });
 
 interface NoteFormProps {
-  onCreate: (title: string, content: string, tag: string) => void;
   onCancel: () => void;
 }
 
-export default function NoteForm({ onCreate, onCancel }: NoteFormProps) {
+export default function NoteForm({ onCancel }: NoteFormProps) {
   const initialValues: FormValues = {
     title: '',
     content: '',
     tag: 'Todo',
   };
 
-  const handleSubmit = (
+  const queryClient = useQueryClient();
+
+  const handleSubmit = async (
     values: FormValues,
     { resetForm }: FormikHelpers<FormValues>
   ) => {
-    onCreate(values.title, values.content, values.tag);
+    queryClient.invalidateQueries({ queryKey: ['notes'] });
     resetForm();
   };
 

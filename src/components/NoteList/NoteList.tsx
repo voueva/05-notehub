@@ -1,19 +1,29 @@
 import { useState } from 'react';
 import type { Note } from '../../types/note';
 import css from './NoteList.module.css';
+import { deleteNote } from '../../services/noteService';
+import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 interface NoteListProps {
   notes: Array<Note>;
-  onDelete: (id: number) => void;
 }
 
-function NoteList({ notes, onDelete }: NoteListProps) {
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+function NoteList({ notes }: NoteListProps) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     setDeletingId(id);
-    await onDelete(id);
-    setDeletingId(null);
+    try {
+      await deleteNote(id);
+      toast.success('Note deleted!');
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    } catch (error) {
+      toast.error('Failed to delete note: ' + error);
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -39,4 +49,3 @@ function NoteList({ notes, onDelete }: NoteListProps) {
 }
 
 export default NoteList;
-
