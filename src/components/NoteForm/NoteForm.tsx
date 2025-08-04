@@ -1,8 +1,10 @@
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import css from './NoteForm.module.css';
-import { useQueryClient } from '@tanstack/react-query';
 import { type FormikHelpers } from 'formik';
+import { createNote } from '../../services/noteService';
+import toast from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface FormValues {
   title: string;
@@ -15,31 +17,39 @@ const validationSchema = Yup.object().shape({
     .min(3, 'Title must be at least 3 characters')
     .max(50, 'Title must be at most 50 characters')
     .required('Title is required'),
-  content: Yup.string().max(500, 'Content must be at most 500 characters'),
+  content: Yup.string()
+    .max(500, 'Content must be at most 500 characters'),
   tag: Yup.string()
     .oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'], 'Invalid tag')
     .required('Tag is required'),
 });
 
 interface NoteFormProps {
-  onCancel: () => void;
+  onClose: () => void;
 }
 
-export default function NoteForm({ onCancel }: NoteFormProps) {
+export default function NoteForm({ onClose }: NoteFormProps) {
+  const queryClient = useQueryClient();
+  
   const initialValues: FormValues = {
     title: '',
     content: '',
     tag: 'Todo',
   };
 
-  const queryClient = useQueryClient();
-
   const handleSubmit = async (
     values: FormValues,
     { resetForm }: FormikHelpers<FormValues>
   ) => {
-    queryClient.invalidateQueries({ queryKey: ['notes'] });
-    resetForm();
+    try {
+      await createNote(values.title, values.content ?? '', values.tag);
+      toast.success('Note created!');
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      resetForm();
+      onClose();
+    } catch (error) {
+      toast.error('Failed to create note: ' + error);
+    }
   };
 
   return (
@@ -84,7 +94,7 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
             <button
               type="reset"
               className={css.cancelButton}
-              onClick={onCancel}
+              onClick={onClose}
             >
               Cancel
             </button>

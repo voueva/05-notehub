@@ -8,7 +8,7 @@ interface PaginationProps {
   currentPage: number;
 }
 
-function Pagination({ setCurrentPage, totalPages, currentPage}: PaginationProps) {
+export default function Pagination({ setCurrentPage, totalPages, currentPage}: PaginationProps) {
 
   return (
     <ReactPaginate 
@@ -24,5 +24,3 @@ function Pagination({ setCurrentPage, totalPages, currentPage}: PaginationProps)
     />
   )
 }
-
-export default Pagination

@@ -9,7 +9,7 @@ interface NoteListProps {
   notes: Array<Note>;
 }
 
-function NoteList({ notes }: NoteListProps) {
+export default function NoteList({ notes }: NoteListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -47,5 +47,3 @@ function NoteList({ notes }: NoteListProps) {
     </ul>
   );
 }
-
-export default NoteList;
