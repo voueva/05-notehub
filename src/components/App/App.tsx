@@ -11,7 +11,6 @@ import NoteForm from '../NoteForm/NoteForm';
 import { useDebouncedCallback } from 'use-debounce';
 
 export default function App() {
-  const [query, setQuery] = useState<string>('');
   const [debouncedQuery, setDebouncedQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -42,7 +41,6 @@ export default function App() {
       <header className={css.toolbar}>
         <SearchBox
           onSearch={(value) => {
-            setQuery(value);
             debouncedSearch(value);
           }}
         />
